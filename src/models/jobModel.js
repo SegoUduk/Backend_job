@@ -1,49 +1,53 @@
 const db = require('../config/database');
 
-const Job = {
-  getAllJobs: () => {
-    return new Promise((resolve, reject) => {
-      const query = 'SELECT * FROM jobs WHERE status = "approved"';
-      db.query(query, (err, results) => {
-        if (err) return reject(err);
-        resolve(results);
-      });
-    });
-  },
+// Mendapatkan semua pekerjaan (dengan filter opsional berdasarkan status)
+const getAllJobs = async (status) => {
+  let query = 'SELECT * FROM jobs';
+  const params = [];
 
-  getJobById: (id) => {
-    return new Promise((resolve, reject) => {
-      const query = 'SELECT * FROM jobs WHERE id = ?';
-      db.query(query, [id], (err, results) => {
-        if (err) return reject(err);
-        resolve(results[0]);
-      });
-    });
-  },
+  if (status) {
+    query += ' WHERE status = ?';
+    params.push(status);
+  }
 
-  createJob: (data) => {
-    return new Promise((resolve, reject) => {
-      const query = `
-        INSERT INTO jobs (user_id, title, company, location, salary, description, status, created_at) 
-        VALUES (?, ?, ?, ?, ?, ?, "pending", NOW())
-      `;
-      const values = [data.user_id, data.title, data.company, data.location, data.salary, data.description];
-      db.query(query, values, (err, results) => {
-        if (err) return reject(err);
-        resolve(results);
-      });
-    });
-  },
-
-  updateJobStatus: (id, status) => {
-    return new Promise((resolve, reject) => {
-      const query = 'UPDATE jobs SET status = ? WHERE id = ?';
-      db.query(query, [status, id], (err, results) => {
-        if (err) return reject(err);
-        resolve(results);
-      });
-    });
-  },
+  const [rows] = await db.query(query, params);
+  return rows;
 };
 
-module.exports = Job;
+// Mendapatkan detail pekerjaan berdasarkan ID
+const getJobById = async (jobId) => {
+  const [rows] = await db.query('SELECT * FROM jobs WHERE id = ?', [jobId]);
+  return rows[0];
+};
+
+// Menambahkan pekerjaan baru
+const addJob = async (jobData) => {
+  const { user_id, title, company, description, location, salary, work_system } = jobData;
+
+  const [result] = await db.query(
+    'INSERT INTO jobs (user_id, title, company, description, location, salary, work_system, status) VALUES (?, ?, ?, ?, ?, ?, ?, "pending")',
+    [user_id, title, company, description, location, salary, work_system]
+  );
+
+  return result.insertId;
+};
+
+// Mengubah status pekerjaan berdasarkan ID
+const updateJobStatus = async (jobId, status) => {
+  const [result] = await db.query('UPDATE jobs SET status = ? WHERE id = ?', [status, jobId]);
+  return result.affectedRows;
+};
+
+// Menghapus pekerjaan berdasarkan ID
+const deleteJob = async (jobId) => {
+  const [result] = await db.query('DELETE FROM jobs WHERE id = ?', [jobId]);
+  return result.affectedRows;
+};
+
+module.exports = {
+  getAllJobs,
+  getJobById,
+  addJob,
+  updateJobStatus,
+  deleteJob,
+};

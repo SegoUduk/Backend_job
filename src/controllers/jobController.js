@@ -1,44 +1,44 @@
-const db = require('../config/database');
+const {
+  getAllJobs,
+  getJobById,
+  addJob,
+  updateJobStatus,
+  deleteJob,
+} = require('../models/jobModel');
 
-// Get all jobs (with optional status filter)
-exports.getAllJobs = (req, res) => {
-  const { status } = req.query; // Optional query parameter for filtering by status
+// Mendapatkan semua pekerjaan (dengan filter opsional)
+exports.getAllJobs = async (req, res) => {
+  const { status } = req.query; // Parameter opsional untuk memfilter berdasarkan status
 
-  let query = 'SELECT * FROM jobs';
-  const params = [];
-
-  if (status) {
-    query += ' WHERE status = ?';
-    params.push(status);
+  try {
+    const jobs = await getAllJobs(status);
+    res.status(200).json({ message: 'Jobs fetched successfully', data: jobs });
+  } catch (error) {
+    console.error('Error fetching jobs:', error);
+    res.status(500).json({ message: 'Error fetching jobs', error: error.message });
   }
-
-  db.query(query, params, (err, results) => {
-    if (err) {
-      console.error('Error fetching jobs:', err);
-      return res.status(500).json({ message: 'Error fetching jobs', error: err.message });
-    }
-    res.status(200).json({ message: 'Jobs fetched successfully', data: results });
-  });
 };
 
-// Get job details by ID
-exports.getJobById = (req, res) => {
+// Mendapatkan detail pekerjaan berdasarkan ID
+exports.getJobById = async (req, res) => {
   const jobId = req.params.id;
 
-  db.query('SELECT * FROM jobs WHERE id = ?', [jobId], (err, results) => {
-    if (err) {
-      console.error('Error fetching job details:', err);
-      return res.status(500).json({ message: 'Error fetching job details', error: err.message });
-    }
-    if (results.length === 0) {
+  try {
+    const job = await getJobById(jobId);
+
+    if (!job) {
       return res.status(404).json({ message: 'Job not found' });
     }
-    res.status(200).json({ message: 'Job details fetched successfully', data: results[0] });
-  });
+
+    res.status(200).json({ message: 'Job details fetched successfully', data: job });
+  } catch (error) {
+    console.error('Error fetching job details:', error);
+    res.status(500).json({ message: 'Error fetching job details', error: error.message });
+  }
 };
 
-// Add a new job
-exports.addJob = (req, res) => {
+// Menambahkan pekerjaan baru
+exports.addJob = async (req, res) => {
   const { user_id, title, company, description, location, salary, work_system } = req.body;
 
   if (!user_id || !title || !company || !description || !location || !salary || !work_system) {
@@ -49,53 +49,53 @@ exports.addJob = (req, res) => {
     return res.status(400).json({ message: 'Invalid work_system value' });
   }
 
-  db.query(
-    'INSERT INTO jobs (user_id, title, company, description, location, salary, work_system, status) VALUES (?, ?, ?, ?, ?, ?, ?, "pending")',
-    [user_id, title, company, description, location, salary, work_system],
-    (err, result) => {
-      if (err) {
-        console.error('Error adding job:', err);
-        return res.status(500).json({ message: 'Error adding job', error: err.message });
-      }
-      res.status(201).json({ message: 'Job added successfully', jobId: result.insertId });
-    }
-  );
+  try {
+    const jobId = await addJob(req.body);
+    res.status(201).json({ message: 'Job added successfully', jobId });
+  } catch (error) {
+    console.error('Error adding job:', error);
+    res.status(500).json({ message: 'Error adding job', error: error.message });
+  }
 };
 
-// Approve a job (Admin)
-exports.approveJob = (req, res) => {
+// Menyetujui pekerjaan (Admin)
+exports.approveJob = async (req, res) => {
   const jobId = req.params.id;
 
-  db.query('UPDATE jobs SET status = "approved" WHERE id = ?', [jobId], (err, result) => {
-    if (err) {
-      console.error('Error approving job:', err);
-      return res.status(500).json({ message: 'Error approving job', error: err.message });
-    }
-    if (result.affectedRows === 0) {
+  try {
+    const updated = await updateJobStatus(jobId, 'approved');
+
+    if (updated === 0) {
       return res.status(404).json({ message: 'Job not found' });
     }
+
     res.status(200).json({ message: 'Job approved successfully' });
-  });
+  } catch (error) {
+    console.error('Error approving job:', error);
+    res.status(500).json({ message: 'Error approving job', error: error.message });
+  }
 };
 
-// Reject a job (Admin)
-exports.rejectJob = (req, res) => {
+// Menolak pekerjaan (Admin)
+exports.rejectJob = async (req, res) => {
   const jobId = req.params.id;
 
-  db.query('UPDATE jobs SET status = "rejected" WHERE id = ?', [jobId], (err, result) => {
-    if (err) {
-      console.error('Error rejecting job:', err);
-      return res.status(500).json({ message: 'Error rejecting job', error: err.message });
-    }
-    if (result.affectedRows === 0) {
+  try {
+    const updated = await updateJobStatus(jobId, 'rejected');
+
+    if (updated === 0) {
       return res.status(404).json({ message: 'Job not found' });
     }
+
     res.status(200).json({ message: 'Job rejected successfully' });
-  });
+  } catch (error) {
+    console.error('Error rejecting job:', error);
+    res.status(500).json({ message: 'Error rejecting job', error: error.message });
+  }
 };
 
-// Update job status (e.g., approved/rejected/pending) (Admin)
-exports.updateJobStatus = (req, res) => {
+// Mengubah status pekerjaan
+exports.updateJobStatus = async (req, res) => {
   const jobId = req.params.id;
   const { status } = req.body;
 
@@ -103,30 +103,34 @@ exports.updateJobStatus = (req, res) => {
     return res.status(400).json({ message: 'Invalid status value' });
   }
 
-  db.query('UPDATE jobs SET status = ? WHERE id = ?', [status, jobId], (err, result) => {
-    if (err) {
-      console.error('Error updating job status:', err);
-      return res.status(500).json({ message: 'Error updating job status', error: err.message });
-    }
-    if (result.affectedRows === 0) {
+  try {
+    const updated = await updateJobStatus(jobId, status);
+
+    if (updated === 0) {
       return res.status(404).json({ message: 'Job not found' });
     }
+
     res.status(200).json({ message: 'Job status updated successfully' });
-  });
+  } catch (error) {
+    console.error('Error updating job status:', error);
+    res.status(500).json({ message: 'Error updating job status', error: error.message });
+  }
 };
 
-// Delete a job
-exports.deleteJob = (req, res) => {
+// Menghapus pekerjaan
+exports.deleteJob = async (req, res) => {
   const jobId = req.params.id;
 
-  db.query('DELETE FROM jobs WHERE id = ?', [jobId], (err, result) => {
-    if (err) {
-      console.error('Error deleting job:', err);
-      return res.status(500).json({ message: 'Error deleting job', error: err.message });
-    }
-    if (result.affectedRows === 0) {
+  try {
+    const deleted = await deleteJob(jobId);
+
+    if (deleted === 0) {
       return res.status(404).json({ message: 'Job not found' });
     }
+
     res.status(200).json({ message: 'Job deleted successfully' });
-  });
+  } catch (error) {
+    console.error('Error deleting job:', error);
+    res.status(500).json({ message: 'Error deleting job', error: error.message });
+  }
 };

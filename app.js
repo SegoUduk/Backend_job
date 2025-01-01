@@ -35,12 +35,16 @@ const userRoutes = require('./src/routes/userRoutes');
 const jobRoutes = require('./src/routes/jobRoutes');
 const applicationRoutes = require('./src/routes/applicationRoutes');
 const notificationRoutes = require('./src/routes/notificationRoutes');
+const adminRoutes = require('./src/routes/adminRoutes');
+
 
 // API Routes
 app.use('/api/users', userRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/admin', adminRoutes);
+
 
 // Health Check Route
 app.get('/', (req, res) => {
