@@ -1,8 +1,18 @@
 const db = require('../config/database');
 
-// Get all approved jobs
+// Get all jobs (with optional status filter)
 exports.getAllJobs = (req, res) => {
-  db.query('SELECT * FROM jobs WHERE status = "approved"', (err, results) => {
+  const { status } = req.query; // Optional query parameter for filtering by status
+
+  let query = 'SELECT * FROM jobs';
+  const params = [];
+
+  if (status) {
+    query += ' WHERE status = ?';
+    params.push(status);
+  }
+
+  db.query(query, params, (err, results) => {
     if (err) {
       console.error('Error fetching jobs:', err);
       return res.status(500).json({ message: 'Error fetching jobs', error: err.message });
@@ -68,7 +78,23 @@ exports.approveJob = (req, res) => {
   });
 };
 
-// Update job status (e.g., approved/rejected) (Admin)
+// Reject a job (Admin)
+exports.rejectJob = (req, res) => {
+  const jobId = req.params.id;
+
+  db.query('UPDATE jobs SET status = "rejected" WHERE id = ?', [jobId], (err, result) => {
+    if (err) {
+      console.error('Error rejecting job:', err);
+      return res.status(500).json({ message: 'Error rejecting job', error: err.message });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Job not found' });
+    }
+    res.status(200).json({ message: 'Job rejected successfully' });
+  });
+};
+
+// Update job status (e.g., approved/rejected/pending) (Admin)
 exports.updateJobStatus = (req, res) => {
   const jobId = req.params.id;
   const { status } = req.body;

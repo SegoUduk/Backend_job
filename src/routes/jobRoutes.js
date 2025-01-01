@@ -1,23 +1,30 @@
 const express = require('express');
 const router = express.Router();
 const jobController = require('../controllers/jobController');
+const { validateJobId, validateAdmin } = require('../middlewares/jobMiddleware'); // Import middleware
 
-// Route to fetch all approved jobs
+// Log setiap request yang masuk
+router.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+  next();
+});
+
+// Route untuk mendapatkan semua pekerjaan yang telah disetujui
 router.get('/', jobController.getAllJobs);
 
-// Route to fetch job details by ID
-router.get('/:id', jobController.getJobById);
+// Route untuk mendapatkan detail pekerjaan berdasarkan ID
+router.get('/:id', validateJobId, jobController.getJobById);
 
-// Route to add a new job (User)
+// Route untuk menambahkan pekerjaan baru (User)
 router.post('/', jobController.addJob);
 
-// Route to approve a job (Admin)
-router.put('/:id/approve', jobController.approveJob);
+// Route untuk menyetujui pekerjaan (Admin)
+router.put('/:id/approve', validateJobId, validateAdmin, jobController.approveJob);
 
-// Route to update job status (e.g., approved, rejected, pending) (Admin)
-router.put('/:id/status', jobController.updateJobStatus);
+// Route untuk memperbarui status pekerjaan (Admin)
+router.put('/:id/status', validateJobId, validateAdmin, jobController.updateJobStatus);
 
-// Route to delete a job
-router.delete('/:id', jobController.deleteJob);
+// Route untuk menghapus pekerjaan (Admin)
+router.delete('/:id', validateJobId, validateAdmin, jobController.deleteJob);
 
 module.exports = router;

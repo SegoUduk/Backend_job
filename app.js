@@ -1,6 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const helmet = require('helmet'); // Keamanan tambahan
+const morgan = require('morgan'); // Logger sederhana
+const db = require('./src/config/database');
 
 // Load environment variables
 dotenv.config();
@@ -10,15 +13,16 @@ const PORT = process.env.PORT || 4000;
 
 // Middleware
 app.use(cors());
+app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(morgan('dev'));
 
 // Database Connection
-const db = require('./src/config/database');
 db.getConnection((err, connection) => {
   if (err) {
     console.error('Database connection failed:', err.message);
-    process.exit(1); // Exit the application if the database fails to connect
+    process.exit(1); // Exit jika gagal
   }
   if (connection) {
     connection.release();
@@ -43,8 +47,9 @@ app.get('/', (req, res) => {
   res.send('Welcome to the Job Portal API!');
 });
 
-// 404 Not Found Middleware
+// Catch-all 404 Middleware
 app.use((req, res, next) => {
+  console.warn(`404 Not Found: ${req.method} ${req.originalUrl}`);
   res.status(404).json({
     message: 'Endpoint not found',
   });
