@@ -134,3 +134,25 @@ exports.deleteJob = async (req, res) => {
     res.status(500).json({ message: 'Error deleting job', error: error.message });
   }
 };
+
+// Perbaikan Login Controller untuk error 404
+exports.loginUser = async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password are required' });
+  }
+
+  try {
+    const user = await login(email, password); // Fungsi login dari model
+
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    res.status(200).json({ message: 'Login successful', user });
+  } catch (error) {
+    console.error('Error logging in:', error);
+    res.status(500).json({ message: 'Error logging in', error: error.message });
+  }
+};

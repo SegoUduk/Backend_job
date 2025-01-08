@@ -1,5 +1,4 @@
 // Middleware untuk validasi job ID dan admin role
-const jwt = require('jsonwebtoken'); // Pastikan Anda menggunakan JSON Web Token untuk otentikasi
 
 // Validasi ID pekerjaan
 const validateJobId = (req, res, next) => {
@@ -13,29 +12,21 @@ const validateJobId = (req, res, next) => {
   next();
 };
 
-// Validasi admin role
+// Validasi admin role tanpa token
 const validateAdmin = (req, res, next) => {
-  // Pastikan token tersedia dari header Authorization
-  const token = req.headers.authorization?.split(' ')[1]; // Mengambil token dari "Bearer {token}"
+  const { email, role } = req.body; // Ambil email dan role dari body request
 
-  if (!token) {
-    return res.status(401).json({ message: 'Token tidak ditemukan. Harap login sebagai admin.' });
+  // Pastikan email dan role ada
+  if (!email || !role) {
+    return res.status(400).json({ message: 'Email dan role harus disediakan.' });
   }
 
-  try {
-    // Verifikasi token menggunakan secret
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
-    req.user = decoded; // Menyimpan data pengguna di req.user untuk digunakan selanjutnya
-
-    // Cek apakah peran adalah admin
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Akses ditolak: hanya untuk admin.' });
-    }
-
-    next();
-  } catch (err) {
-    return res.status(403).json({ message: 'Token tidak valid atau sudah kedaluwarsa.' });
+  // Cek apakah role adalah admin
+  if (role !== 'admin') {
+    return res.status(403).json({ message: 'Akses ditolak: hanya untuk admin.' });
   }
+
+  next();
 };
 
 // Middleware tambahan untuk validasi status pekerjaan (jika diperlukan)
