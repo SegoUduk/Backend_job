@@ -1,61 +1,95 @@
-const bcrypt = require('bcrypt');
 const db = require('../config/database');
 
-// Mendaftarkan pengguna baru
-exports.registerUser = async (req, res) => {
-  const { name, email, password, role } = req.body;
+// Mendapatkan semua pekerjaan dengan status "pending"
+exports.getPendingJobs = (req, res) => {
+  const query = 'SELECT * FROM jobs WHERE status = "pending"';
 
-  if (!name || !email || !password) {
-    return res.status(400).json({ message: 'Semua field wajib diisi.' });
-  }
-
-  try {
-    const hashedPassword = await bcrypt.hash(password, 10); // Hash password
-    const query = 'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)';
-
-    db.query(query, [name, email, hashedPassword, role || 'user'], (err, result) => {
-      if (err) {
-        console.error(err.message);
-        return res.status(500).json({ message: 'Gagal mendaftarkan pengguna.' });
-      }
-
-      res.status(201).json({ message: 'Pengguna berhasil didaftarkan.', userId: result.insertId });
-    });
-  } catch (error) {
-    console.error('Error hashing password:', error.message);
-    res.status(500).json({ message: 'Terjadi kesalahan saat mendaftarkan pengguna.' });
-  }
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Database Error:', err.message);
+      return res.status(500).json({ message: 'Gagal memuat data pekerjaan.' });
+    }
+    res.status(200).json(results);
+  });
 };
 
-// Login pengguna
-exports.loginUser = (req, res) => {
-  const { email, password } = req.body;
+// Memperbarui status pekerjaan
+exports.updateJobStatus = (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
 
-  if (!email || !password) {
-    return res.status(400).json({ message: 'Email dan password wajib diisi.' });
-  }
+  const query = 'UPDATE jobs SET status = ? WHERE id = ?';
 
-  const query = 'SELECT * FROM users WHERE email = ?';
-
-  db.query(query, [email], async (err, results) => {
+  db.query(query, [status, id], (err, result) => {
     if (err) {
-      console.error(err.message);
-      return res.status(500).json({ message: 'Gagal melakukan login.' });
+      console.error('Database Error:', err.message);
+      return res.status(500).json({ message: 'Gagal memperbarui status pekerjaan.' });
     }
 
-    if (results.length === 0) {
-      return res.status(401).json({ message: 'Email tidak ditemukan.' });
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Pekerjaan tidak ditemukan.' });
     }
 
-    const user = results[0];
+    res.status(200).json({ message: 'Status pekerjaan berhasil diperbarui.' });
+  });
+};
 
-    // Verifikasi password
-    const isPasswordMatch = await bcrypt.compare(password, user.password);
+// Menghapus pekerjaan oleh admin
+exports.deleteJobAsAdmin = (req, res) => {
+  const { id } = req.params;
 
-    if (!isPasswordMatch) {
-      return res.status(401).json({ message: 'Password salah.' });
+  const query = 'DELETE FROM jobs WHERE id = ?';
+
+  db.query(query, [id], (err, result) => {
+    if (err) {
+      console.error('Database Error:', err.message);
+      return res.status(500).json({ message: 'Gagal menghapus pekerjaan.' });
     }
 
-    res.json({ message: 'Login berhasil.', user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Pekerjaan tidak ditemukan.' });
+    }
+
+    res.status(200).json({ message: 'Pekerjaan berhasil dihapus.' });
+  });
+};
+
+// Menyetujui pekerjaan
+exports.approveJob = (req, res) => {
+  const { id } = req.params;
+
+  const query = 'UPDATE jobs SET status = "approved" WHERE id = ?';
+
+  db.query(query, [id], (err, result) => {
+    if (err) {
+      console.error('Database Error:', err.message);
+      return res.status(500).json({ message: 'Gagal menyetujui pekerjaan.' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Pekerjaan tidak ditemukan.' });
+    }
+
+    res.status(200).json({ message: 'Pekerjaan berhasil disetujui.' });
+  });
+};
+
+// Menolak pekerjaan
+exports.rejectJob = (req, res) => {
+  const { id } = req.params;
+
+  const query = 'UPDATE jobs SET status = "rejected" WHERE id = ?';
+
+  db.query(query, [id], (err, result) => {
+    if (err) {
+      console.error('Database Error:', err.message);
+      return res.status(500).json({ message: 'Gagal menolak pekerjaan.' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Pekerjaan tidak ditemukan.' });
+    }
+
+    res.status(200).json({ message: 'Pekerjaan berhasil ditolak.' });
   });
 };

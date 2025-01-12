@@ -1,13 +1,13 @@
 const mysql = require('mysql2');
-require('dotenv').config();
 
 const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+  host: 'localhost', // Sesuaikan dengan host Anda
+  user: 'root', // Sesuaikan dengan user Anda
+  password: '', // Sesuaikan dengan password Anda
+  database: 'job_portal', // Sesuaikan dengan nama database Anda
+  waitForConnections: true,
+  connectionLimit: 10, // Atur limit koneksi pool
+  queueLimit: 0, // Tidak ada batas antrian
 });
 
-const promisePool = pool.promise();
-
-module.exports = promisePool;
+module.exports = pool.promise();

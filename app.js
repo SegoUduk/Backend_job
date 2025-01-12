@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const db = require('./src/config/database');
+const path = require('path');
 
 // Load environment variables
 dotenv.config();
@@ -12,17 +13,18 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 // Middleware
-app.use(cors());
-app.use(helmet());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(morgan('dev'));
+app.use(cors()); // Allow cross-origin requests
+app.use(helmet()); // Enhance security with HTTP headers
+app.use(express.json()); // Parse JSON request bodies
+app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request bodies
+app.use(morgan('dev')); // Log HTTP requests
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Database Connection
 db.getConnection((err, connection) => {
   if (err) {
     console.error('Database connection failed:', err.message);
-    process.exit(1);
+    process.exit(1); // Exit process if connection fails
   }
   if (connection) {
     connection.release();
@@ -32,17 +34,11 @@ db.getConnection((err, connection) => {
 
 // Import Routes
 const userRoutes = require('./src/routes/userRoutes');
-const jobRoutes = require('./src/routes/jobRoutes');
-const applicationRoutes = require('./src/routes/applicationRoutes');
-const notificationRoutes = require('./src/routes/notificationRoutes');
 const adminRoutes = require('./src/routes/adminRoutes');
 
 // API Routes
 app.use('/api/users', userRoutes); // Routes for user-related operations
-app.use('/api/jobs', jobRoutes); // Routes for job-related operations
-app.use('/api/applications', applicationRoutes); // Routes for job applications
-app.use('/api/notifications', notificationRoutes); // Routes for user notifications
-app.use('/api/admin', adminRoutes); // Admin routes for managing jobs, etc.
+app.use('/api/admin', adminRoutes); // Routes for admin-related operations
 
 // Health Check Route
 app.get('/', (req, res) => {
@@ -58,7 +54,10 @@ app.use((req, res, next) => {
 // Error Handling Middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong on the server!', error: err.message });
+  res.status(500).json({
+    message: 'Something went wrong on the server!',
+    error: err.message,
+  });
 });
 
 // Start Server
