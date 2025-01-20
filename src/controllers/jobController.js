@@ -1,3 +1,6 @@
+const db = require('../config/database'); // Pastikan path ini benar
+
+
 const {
   getAllJobs,
   getJobById,
@@ -50,8 +53,11 @@ exports.addJob = async (req, res) => {
   }
 
   try {
-    const jobId = await addJob(req.body);
-    res.status(201).json({ message: 'Job added successfully', jobId });
+    const [result] = await db.query(
+      'INSERT INTO jobs (user_id, title, company, description, location, salary, work_system) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [user_id, title, company, description, location, salary, work_system]
+    );
+    res.status(201).json({ message: 'Job added successfully', jobId: result.insertId });
   } catch (error) {
     console.error('Error adding job:', error);
     res.status(500).json({ message: 'Error adding job', error: error.message });

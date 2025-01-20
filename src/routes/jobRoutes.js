@@ -13,7 +13,7 @@ router.use((req, res, next) => {
 router.get('/', jobController.getAllJobs);
 
 // Route untuk menambahkan pekerjaan baru (User)
-router.post('/jobs', jobController.addJob);
+router.post('/', jobController.addJob);
 
 // Route untuk mendapatkan detail pekerjaan berdasarkan ID
 router.get('/:id', validateJobId, jobController.getJobById);
