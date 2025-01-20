@@ -94,6 +94,8 @@ exports.rejectJob = async (req, res) => {
   }
 };
 
+// Fungsi lainnya...
+
 // Mengubah status pekerjaan
 exports.updateJobStatus = async (req, res) => {
   const jobId = req.params.id;

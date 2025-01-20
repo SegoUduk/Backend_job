@@ -18,7 +18,7 @@ app.use(helmet()); // Enhance security with HTTP headers
 app.use(express.json()); // Parse JSON request bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request bodies
 app.use(morgan('dev')); // Log HTTP requests
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'))); // Serve static files from 'public' directory
 
 // Database Connection
 db.getConnection((err, connection) => {
@@ -35,12 +35,12 @@ db.getConnection((err, connection) => {
 // Import Routes
 const userRoutes = require('./src/routes/userRoutes');
 const adminRoutes = require('./src/routes/adminRoutes');
-const jobRoutes = require('./src/routes/jobRoutes'); // Tambahkan ini
+const jobRoutes = require('./src/routes/jobRoutes');
 
 // API Routes
 app.use('/api/users', userRoutes); // Routes for user-related operations
 app.use('/api/admin', adminRoutes); // Routes for admin-related operations
-app.use('/api', jobRoutes); // Tambahkan ini
+app.use('/api/jobs', jobRoutes); // Routes for job-related operations
 
 // Health Check Route
 app.get('/', (req, res) => {

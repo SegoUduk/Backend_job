@@ -9,16 +9,14 @@ router.use((req, res, next) => {
   next();
 });
 
-// Route untuk mendapatkan semua pekerjaan yang telah disetujui
+// Route untuk mendapatkan semua pekerjaan (dengan filter opsional)
 router.get('/', jobController.getAllJobs);
 
-router.post('/jobs', jobController.addJob)
+// Route untuk menambahkan pekerjaan baru (User)
+router.post('/jobs', jobController.addJob);
 
 // Route untuk mendapatkan detail pekerjaan berdasarkan ID
 router.get('/:id', validateJobId, jobController.getJobById);
-
-// Route untuk menambahkan pekerjaan baru (User)
-router.post('/', jobController.addJob);
 
 // Route untuk menyetujui pekerjaan (Admin)
 router.put('/:id/approve', validateJobId, validateAdmin, jobController.approveJob);

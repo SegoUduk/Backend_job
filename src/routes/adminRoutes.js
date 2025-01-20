@@ -6,7 +6,7 @@ const {
   approveJob,
   rejectJob,
   getApprovedJobs // Ensure this line is present
-} = require('../controllers/AdminController');
+} = require('../controllers/adminController');
 
 const router = express.Router();
 

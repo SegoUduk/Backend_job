@@ -22,17 +22,21 @@ exports.registerUser = async (req, res) => {
 exports.loginUser = async (req, res) => {
   const { email, password } = req.body;
 
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password are required' });
+  }
+
   try {
     const [results] = await db.query('SELECT * FROM users WHERE email = ? AND password = ?', [email, password]);
 
     if (results.length === 0) {
-      return res.status(401).json({ message: 'Email atau password salah.' });
+      return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    res.status(200).json({ message: 'Login berhasil.', user: results[0] });
+    res.status(200).json({ message: 'Login successful', user: results[0] });
   } catch (err) {
-    console.error('Error saat login pengguna:', err.message);
-    res.status(500).json({ message: 'Gagal login.', error: err.message });
+    console.error('Error logging in:', err.message);
+    res.status(500).json({ message: 'Error logging in', error: err.message });
   }
 };
 
