@@ -12,14 +12,10 @@ router.get('/', (req, res) => {
 });
 
 // Route untuk mendaftarkan pengguna baru
-router.post('/register', (req, res) => {
-  userController.registerUser(req, res);
-});
+router.post('/register', userController.registerUser);
 
 // Route untuk login pengguna
-router.post('/login', (req, res) => {
-  userController.loginUser(req, res);
-});
+router.post('/login', userController.loginUser);
 
 // Route untuk memperbarui profil pengguna
 router.put('/:id', (req, res) => {

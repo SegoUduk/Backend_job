@@ -12,6 +12,8 @@ router.use((req, res, next) => {
 // Route untuk mendapatkan semua pekerjaan yang telah disetujui
 router.get('/', jobController.getAllJobs);
 
+router.post('/jobs', jobController.addJob)
+
 // Route untuk mendapatkan detail pekerjaan berdasarkan ID
 router.get('/:id', validateJobId, jobController.getJobById);
 

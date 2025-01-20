@@ -16,6 +16,22 @@ exports.getPendingJobs = async (req, res) => {
   }
 };
 
+// Mendapatkan semua pekerjaan dengan status "approved"
+exports.getApprovedJobs = async (req, res) => {
+  try {
+    const [results] = await db.query('SELECT * FROM jobs WHERE status = "approved"');
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'Tidak ada pekerjaan dengan status approved.' });
+    }
+
+    res.status(200).json(results);
+  } catch (err) {
+    console.error('Error saat mengambil pekerjaan dengan status approved:', err.message);
+    res.status(500).json({ message: 'Gagal memuat data pekerjaan.', error: err.message });
+  }
+};
+
 // Memperbarui status pekerjaan
 exports.updateJobStatus = async (req, res) => {
   const { id } = req.params;

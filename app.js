@@ -35,10 +35,12 @@ db.getConnection((err, connection) => {
 // Import Routes
 const userRoutes = require('./src/routes/userRoutes');
 const adminRoutes = require('./src/routes/adminRoutes');
+const jobRoutes = require('./src/routes/jobRoutes'); // Tambahkan ini
 
 // API Routes
 app.use('/api/users', userRoutes); // Routes for user-related operations
 app.use('/api/admin', adminRoutes); // Routes for admin-related operations
+app.use('/api', jobRoutes); // Tambahkan ini
 
 // Health Check Route
 app.get('/', (req, res) => {
