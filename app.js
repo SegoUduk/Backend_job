@@ -36,11 +36,13 @@ db.getConnection((err, connection) => {
 const userRoutes = require('./src/routes/userRoutes');
 const adminRoutes = require('./src/routes/adminRoutes');
 const jobRoutes = require('./src/routes/jobRoutes');
+const applicationRoutes = require('./src/routes/applicationRoutes'); // Import application routes
 
 // API Routes
 app.use('/api/users', userRoutes); // Routes for user-related operations
 app.use('/api/admin', adminRoutes); // Routes for admin-related operations
 app.use('/api/jobs', jobRoutes); // Routes for job-related operations
+app.use('/api/applications', applicationRoutes); // Routes for application-related operations
 
 // Health Check Route
 app.get('/', (req, res) => {

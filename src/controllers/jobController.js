@@ -1,6 +1,5 @@
 const db = require('../config/database'); // Pastikan path ini benar
 
-
 const {
   getAllJobs,
   getJobById,

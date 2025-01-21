@@ -21,27 +21,24 @@ exports.getApplicationsByJob = (req, res) => {
   );
 };
 
-// Create a new application
-exports.createApplication = (req, res) => {
-  const { user_id, job_id, status } = req.body;
+// Membuat aplikasi baru untuk pekerjaan
+exports.createApplication = async (req, res) => {
+  const { job_id, user_id, resume, cover_letter } = req.body;
 
-  if (!user_id || !job_id) {
-    return res.status(400).json({ message: 'User ID and Job ID are required' });
+  if (!job_id || !user_id || !resume || !cover_letter) {
+    return res.status(400).json({ message: 'All fields are required' });
   }
 
-  const applicationStatus = status || 'pending'; // Default status is "pending"
-
-  db.query(
-    'INSERT INTO applications (user_id, job_id, status) VALUES (?, ?, ?)',
-    [user_id, job_id, applicationStatus],
-    (err, result) => {
-      if (err) {
-        console.error('Error creating application:', err);
-        return res.status(500).json({ message: 'Error creating application', error: err.message });
-      }
-      res.status(201).json({ message: 'Application created successfully', applicationId: result.insertId });
-    }
-  );
+  try {
+    const [result] = await db.query(
+      'INSERT INTO applications (job_id, user_id, resume, cover_letter) VALUES (?, ?, ?, ?)',
+      [job_id, user_id, resume, cover_letter]
+    );
+    res.status(201).json({ message: 'Application created successfully', applicationId: result.insertId });
+  } catch (error) {
+    console.error('Error creating application:', error);
+    res.status(500).json({ message: 'Error creating application', error: error.message });
+  }
 };
 
 // Update the status of an application
