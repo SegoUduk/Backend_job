@@ -27,4 +27,7 @@ router.put('/:id/status', validateJobId, validateAdmin, jobController.updateJobS
 // Route untuk menghapus pekerjaan (Admin)
 router.delete('/:id', validateJobId, validateAdmin, jobController.deleteJob);
 
+// Route untuk mendapatkan pekerjaan yang diunggah oleh pengguna tertentu
+router.get('/uploaded', jobController.getUploadedJobs);
+
 module.exports = router;

@@ -164,3 +164,22 @@ exports.loginUser = async (req, res) => {
   }
 };
 
+// Fungsi untuk mendapatkan pekerjaan yang diunggah oleh pengguna tertentu
+exports.getUploadedJobs = (req, res) => {
+  const { userId } = req.query;
+
+  db.query(
+    'SELECT * FROM jobs WHERE user_id = ?',
+    [userId],
+    (err, results) => {
+      if (err) {
+        console.error('Error fetching uploaded jobs:', err);
+        return res.status(500).json({ message: 'Error fetching uploaded jobs', error: err.message });
+      }
+      if (results.length === 0) {
+        return res.status(404).json({ message: 'No uploaded jobs found for this user' });
+      }
+      res.status(200).json({ message: 'Uploaded jobs fetched successfully', data: results });
+    }
+  );
+};
